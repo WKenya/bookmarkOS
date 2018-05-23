@@ -6,6 +6,6 @@ public final class Constants
     {
     }
 
-    public static final String BookmarkOSURL = "file:///android_asset/index.html";
+    public static final String BookmarkOSURL = "https://bookmarkos.com";
     public static final String TextPlainMimeType = "text/plain";
 }

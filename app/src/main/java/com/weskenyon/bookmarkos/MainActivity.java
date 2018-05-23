@@ -4,16 +4,19 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 public class MainActivity extends AppCompatActivity
 {
-    private WebView myWebView = null;
-    private MyWebViewClient myWebViewClient = null;
+    private WebView myWebView;
+    private MyWebViewClient myWebViewClient;
+
     @Override
     protected void onCreate( Bundle savedInstanceState )
     {
@@ -28,33 +31,36 @@ public class MainActivity extends AppCompatActivity
 
         myWebViewClient = new MyWebViewClient( this );
         myWebView.setWebViewClient( myWebViewClient );
-        myWebView.loadUrl( "file:///android_asset/index.html" );
+        myWebView.loadUrl( Constants.BookmarkOSURL );
     }
 
-    public void handleIntent() {
-        Intent intent = getIntent();
-        String action = intent.getAction();
-        String type = intent.getType();
+    public void handleIntent()
+    {
+        Intent intent = getIntent( );
+        String action = intent.getAction( );
+        String type = intent.getType( );
 
-        if(Intent.ACTION_SEND.equals(action) && type != null)
+        if ( Intent.ACTION_SEND.equals( action ) && type != null )
         {
-            if( type.equals(Constants.TextPlainMimeType ))
+            if ( type.equals( Constants.TextPlainMimeType ) )
             {
-                handleSentText(intent);
+                handleSentText( intent );
             }
         }
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
+    public boolean onKeyDown( int keyCode, KeyEvent event )
+    {
         // Check if the key event was the Back button and if there's history
-        if ((keyCode == KeyEvent.KEYCODE_BACK) && myWebView.canGoBack()) {
-            myWebView.goBack();
+        if ( ( keyCode == KeyEvent.KEYCODE_BACK ) && myWebView.canGoBack( ) )
+        {
+            myWebView.goBack( );
             return true;
         }
         // If it wasn't the Back key or there's no web page history, bubble up to the default
         // system behavior (probably exit the activity)
-        return super.onKeyDown(keyCode, event);
+        return super.onKeyDown( keyCode, event );
     }
 
     @Override
@@ -82,13 +88,21 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected( item );
     }
 
-    private void handleSentText(Intent intent)
+    private void handleSentText( Intent intent )
     {
-        String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
-        if(sharedText != null)
+        String sharedText = intent.getStringExtra( Intent.EXTRA_TEXT );
+        if ( sharedText != null )
         {
-            // myWebView.loadUrl( "javascript:(function() { newBookmark(); document.getElementByID(\"web_page_url\")[0].text = "+ sharedText +" + }", null );
-            myWebView.evaluateJavascript( "test(\""+sharedText+"\")", null );
+            myWebView.evaluateJavascript( "(function() {" +
+                    "newBookmark();" +
+                    "$(\"#web_page_url\")[0].value = \"" + sharedText + "\";" +
+                    "})()", new ValueCallback< String >( )
+            {
+                @Override
+                public void onReceiveValue( String s )
+                {
+                }
+            } );
         }
     }
 }
