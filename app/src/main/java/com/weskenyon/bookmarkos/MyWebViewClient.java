@@ -1,11 +1,10 @@
 package com.weskenyon.bookmarkos;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.text.BoringLayout;
 import android.util.Log;
+import android.webkit.ValueCallback;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -14,11 +13,11 @@ import static android.support.v4.content.ContextCompat.startActivity;
 
 public class MyWebViewClient extends WebViewClient
 {
-    private MainActivity _activity;
+    private String _intentURL;
 
-    public MyWebViewClient( MainActivity activity )
+    public MyWebViewClient( String intentURL )
     {
-        _activity = activity;
+        _intentURL = intentURL;
     }
 
     @Override
@@ -41,7 +40,19 @@ public class MyWebViewClient extends WebViewClient
     public final void onPageFinished( WebView view, String url )
     {
         super.onPageFinished( view, url );
-        this._activity.handleIntent( );
+        if ( !_intentURL.equals( "" ) )
+        {
+            view.evaluateJavascript( "(function() {" +
+                    "newBookmark();" +
+                    "$(\"#web_page_url\")[0].value = \"" + _intentURL + "\";" +
+                    "})()", new ValueCallback< String >( )
+            {
+                @Override
+                public void onReceiveValue( String s )
+                {
+                }
+            } );
+        }
         Log.d( TAG, "The webView with the following url " + url + " has finished loading" );
     }
 

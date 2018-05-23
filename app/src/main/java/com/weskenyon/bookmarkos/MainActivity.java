@@ -4,11 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.webkit.ValueCallback;
+import android.webkit.URLUtil;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
@@ -29,24 +28,11 @@ public class MainActivity extends AppCompatActivity
         WebSettings webSettings = myWebView.getSettings( );
         webSettings.setJavaScriptEnabled( true );
 
-        myWebViewClient = new MyWebViewClient( this );
+        String intentUrl = handleIntent( );
+
+        myWebViewClient = new MyWebViewClient( intentUrl );
         myWebView.setWebViewClient( myWebViewClient );
         myWebView.loadUrl( Constants.BookmarkOSURL );
-    }
-
-    public void handleIntent()
-    {
-        Intent intent = getIntent( );
-        String action = intent.getAction( );
-        String type = intent.getType( );
-
-        if ( Intent.ACTION_SEND.equals( action ) && type != null )
-        {
-            if ( type.equals( Constants.TextPlainMimeType ) )
-            {
-                handleSentText( intent );
-            }
-        }
     }
 
     @Override
@@ -88,21 +74,29 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected( item );
     }
 
-    private void handleSentText( Intent intent )
+    public String handleIntent()
+    {
+        Intent intent = getIntent( );
+        String action = intent.getAction( );
+        String type = intent.getType( );
+
+        if ( Intent.ACTION_SEND.equals( action ) && type != null )
+        {
+            if ( type.equals( Constants.TextPlainMimeType ) )
+            {
+                return getUrl( intent );
+            }
+        }
+        return "";
+    }
+
+    private String getUrl( Intent intent )
     {
         String sharedText = intent.getStringExtra( Intent.EXTRA_TEXT );
-        if ( sharedText != null )
+        if ( sharedText != null && URLUtil.isValidUrl( sharedText ) )
         {
-            myWebView.evaluateJavascript( "(function() {" +
-                    "newBookmark();" +
-                    "$(\"#web_page_url\")[0].value = \"" + sharedText + "\";" +
-                    "})()", new ValueCallback< String >( )
-            {
-                @Override
-                public void onReceiveValue( String s )
-                {
-                }
-            } );
+            return sharedText;
         }
+        return "";
     }
 }
